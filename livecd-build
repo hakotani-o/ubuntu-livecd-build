@@ -1,0 +1,483 @@
+#!/bin/bash
+
+
+cd build || exit 1
+#mkdir chroot
+
+# Query the system to locate livecd-rootfs auto script installation path
+cp -a /usr/share/livecd-rootfs/live-build/auto .
+cp -a /usr/share/livecd-rootfs/live-build/ubuntucinnamon .
+
+export SUBPROJECT=desktop-preinstalled
+export PROJECT=ubuntucinnamon
+name="desktop"
+export SUITE=plucky
+Uri="https://mirror.hashy0917.net/ubuntu-ports/"
+
+export ARCH=arm64
+export IMAGEFORMAT=none
+export IMAGE_TARGETS=none
+export EXTRA_PPAS=""
+
+# Populate the configuration directory for live build
+lb config \
+    --architecture arm64 \
+    --bootstrap-qemu-arch arm64 \
+    --bootstrap-qemu-static /usr/bin/qemu-aarch64-static \
+    --archive-areas "main restricted universe multiverse" \
+    --parent-archive-areas "main restricted universe multiverse" \
+    --mirror-bootstrap "$Uri" \
+    --parent-mirror-bootstrap "$Uri" \
+    --mirror-chroot-security "$Uri" \
+    --parent-mirror-chroot-security "$Uri" \
+    --mirror-binary-security "$Uri" \
+    --parent-mirror-binary-security "$Uri" \
+    --mirror-binary "$Uri" \
+    --parent-mirror-binary "$Uri" \
+    --keyring-packages ubuntu-keyring \
+    --linux-flavours rockchip
+
+
+sed -i 's/libgl1-amber-dri//g' config/package-lists/livecd-rootfs.list.chroot_install
+
+
+if [ "${PROJECT}" == "ubuntucinnamon" ]; then
+    # Specific packages to install for ubuntu desktop
+    (
+        echo "ubuntucinnamon-desktop"
+        echo "oem-config-gtk"
+        echo "ubiquity-frontend-gtk"
+        echo "ubiquity-slideshow-ubuntu"
+        echo "linux-firmware"
+        echo "cloud-initramfs-growroot"
+        echo "yaru-theme-unity"
+        echo "aptdaemon"
+        echo "grub-efi-arm64"
+        echo "initramfs-tools"
+        echo "software-properties-common"
+        echo "apt-utils"
+        echo "build-essential"
+        echo "gcc-aarch64-linux-gnu"
+        echo "bison"
+        echo "qemu-user-static"
+        echo "qemu-system-arm"
+        echo "qemu-efi-aarch64"
+        echo "binfmt-support"
+        echo "debootstrap"
+        echo "flex"
+        echo "libssl-dev"
+        echo "bc"
+        echo "rsync"
+        echo "kmod"
+        echo "cpio"
+        echo "xz-utils"
+        echo "fakeroot"
+        echo "parted"
+        echo "udev"
+        echo "dosfstools"
+        echo "uuid-runtime"
+        echo "device-tree-compiler"
+        echo "python3"
+        echo "python-is-python3"
+        echo "fdisk"
+        echo "bc"
+        echo "debhelper"
+        echo "python3-pyelftools"
+        echo "python3-setuptools"
+        echo "python3-pkg-resources"
+        echo "swig"
+        echo "libfdt-dev"
+        echo "libpython3-dev"
+        echo "gawk"
+        echo "git"
+        echo "fakeroot"
+        echo "build-essential"
+        echo "ncurses-dev"
+        echo "libssl-dev"
+        echo "flex"
+        echo "libelf-dev"
+        echo "sudo"
+        echo "libgnutls28-dev"
+        echo "python3-mako"
+        echo "libwayland-egl-backend-dev"
+        echo "libxcb-dri3-dev"
+        echo "libxcb-dri2-0-dev"
+        echo "libxcb-glx0-dev"
+        echo "libx11-xcb-dev"
+        echo "libxcb-present-dev"
+        echo "libxcb-sync-dev"
+        echo "libxxf86vm-dev"
+        echo "libxshmfence-dev"
+        echo "libxrandr-dev"
+        echo "libwayland-dev"
+        echo "libxdamage-dev"
+        echo "libxext-dev"
+        echo "libxfixes-dev"
+        echo "x11proto-dri2-dev"
+        echo "x11proto-present-dev"
+        echo "x11proto-gl-dev"
+        echo "x11proto-xf86vidmode-dev"
+        echo "libexpat1-dev"
+        echo "libudev-dev"
+        echo "gettext"
+        echo "mesa-utils"
+        echo "xutils-dev"
+        echo "libpthread-stubs0-dev"
+        echo "ninja-build"
+        echo "cmake"
+        echo "valgrind"
+        echo "python3-pip"
+        echo "pkg-config"
+        echo "zlib1g-dev"
+        echo "wayland-protocols"
+        echo "libxcb-shm0-dev"
+        echo "meson"
+        echo "llvm-20-dev"
+        echo "libclang-cpp20-dev"
+        echo "libclc-20-dev"
+        echo "libllvmspirvlib-20-dev"
+        echo "spirv-tools"
+        echo "libopencl-clang-20-dev"
+        echo "clang-20"
+        echo "libclang-20-dev"
+        echo "llvm-spirv-20"
+        echo "libclang-common-20-dev"
+        echo "libunwind-20-dev"
+        echo "lm-sensors"
+        echo "ibus-mozc"
+        echo "u-boot-tools"
+        echo "u-boot-menu"
+        echo "localechooser-data"
+        echo "usb-modeswitch"
+        echo "usb-modeswitch-data"
+    ) >> config/package-lists/my.list.chroot
+fi
+
+# Build the rootfs
+lb build 
+
+chroot_dir="overlay.minimal"
+
+setup_mountpoint() {
+    local mountpoint="$1"
+
+    if [ ! -c /dev/mem ]; then
+        mknod -m 660 /dev/mem c 1 1
+        chown root:kmem /dev/mem
+    fi
+
+    mount dev-live -t devtmpfs "$mountpoint/dev"
+    mount devpts-live -t devpts -o nodev,nosuid "$mountpoint/dev/pts"
+    mount proc-live -t proc "$mountpoint/proc"
+    mount sysfs-live -t sysfs "$mountpoint/sys"
+    mount securityfs -t securityfs "$mountpoint/sys/kernel/security"
+    # Provide more up to date apparmor features, matching target kernel
+    # cgroup2 mount for LP: 1944004
+    mount -t cgroup2 none "$mountpoint/sys/fs/cgroup"
+    mount -t tmpfs none "$mountpoint/tmp"
+    mount -t tmpfs none "$mountpoint/var/lib/apt/lists"
+    mount -t tmpfs none "$mountpoint/var/cache/apt"
+}
+teardown_mountpoint() {
+    # Reverse the operations from setup_mountpoint
+    local mountpoint
+    mountpoint=$(realpath "$1")
+
+    # ensure we have exactly one trailing slash, and escape all slashes for awk
+    mountpoint_match=$(echo "$mountpoint" | sed -e's,/$,,; s,/,\\/,g;')'\/'
+    # sort -r ensures that deeper mountpoints are unmounted first
+    awk </proc/self/mounts "\$2 ~ /$mountpoint_match/ { print \$2 }" | LC_ALL=C sort -r | while IFS= read -r submount; do
+        mount --make-private "$submount"
+        umount "$submount"
+    done
+}
+
+set -e
+
+setup_mountpoint $chroot_dir
+
+#Setup DNS
+echo "127.0.0.1 localhost" > $chroot_dir/etc/hosts
+echo "nameserver 8.8.8.8" > $chroot_dir/etc/resolv.conf
+echo "nameserver 8.8.4.4" >> $chroot_dir/etc/resolv.conf
+
+
+sed -i 's/#EXTRA_GROUPS=.*/EXTRA_GROUPS="video"/g' $chroot_dir/etc/adduser.conf
+sed -i 's/#ADD_EXTRA_GROUPS=.*/ADD_EXTRA_GROUPS=1/g' $chroot_dir/etc/adduser.conf
+
+# Create the oem user account only if it doesn't already exist
+if ! id "oem" &>/dev/null; then
+chroot $chroot_dir /usr/sbin/useradd -d /home/oem -G adm,sudo,video -m -N -u 29999 oem
+chroot $chroot_dir /usr/sbin/oem-config-prepare --quiet
+chroot $chroot_dir touch "/var/lib/oem-config/run"
+fi
+
+# mesa
+mkdir $chroot_dir/bbb
+chroot $chroot_dir /bin/bash -c "cd bbb && git clone --depth 1 https://gitlab.freedesktop.org/mesa/libdrm && cd libdrm/ && mkdir build && cd build/ && meson && ninja install"
+chroot $chroot_dir /bin/bash -c "cd bbb && git clone --depth 1 -b staging/25.2 https://gitlab.freedesktop.org/mesa/mesa.git && cd mesa && mkdir build && cd build && meson -Dvulkan-drivers=panfrost -Dgallium-drivers=panfrost -Dlibunwind=false -Dprefix=/opt/panfrost && ninja install && echo /opt/panfrost/lib/aarch64-linux-gnu | tee /etc/ld.so.conf.d/0-panfrost.conf && echo 'VK_DRIVER_FILES="/opt/panfrost/share/vulkan/icd.d/panfrost_icd.aarch64.json"' >> /etc/environment"
+rm -rf $chroot_dir/bbb
+
+chroot $chroot_dir apt-get -y purge cloud-init flash-kernel fwupd
+
+# Default kernel command line arguments
+echo -n "rootwait rw console=ttyS2,1500000 console=tty1 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory" > $chroot_dir/etc/kernel/cmdline
+echo -n " quiet splash plymouth.ignore-serial-consoles" >> $chroot_dir/etc/kernel/cmdline
+
+kernel_version="`ls -1 $chroot_dir/boot/vmlinu?-*|sed 's#-# #' | awk '{ print $2 }'`"
+
+# Override u-boot-menu config
+mkdir -p $chroot_dir/usr/share/u-boot-menu/conf.d
+cat << 'EOF' > $1/usr/share/u-boot-menu/conf.d/ubuntu.conf
+U_BOOT_UPDATE="true"
+U_BOOT_PROMPT="1"
+U_BOOT_PARAMETERS="$(cat /etc/kernel/cmdline)"
+U_BOOT_TIMEOUT="20"
+EOF
+
+rm -f $chroot_dir/var/lib/dbus/machine-id
+true > $chroot_dir/etc/machine-id
+touch $chroot_dir/var/log/syslog
+chown syslog:adm $chroot_dir/var/log/syslog
+chroot $chroot_dir ssh-keygen -A
+
+chroot $chroot_dir apt-get update
+chroot $chroot_dir apt-get  clean
+chroot $chroot_dir apt-get -y autoremove
+
+
+teardown_mountpoint $chroot_dir
+
+export  LC_ALL=C
+export  LC_CTYPE=C
+export  LANGUAGE=C
+export  LANG=C
+
+
+cleanup_loopdev() {
+    local loop="$1"
+
+    sync --file-system
+    sync
+
+    sleep 1
+
+    if [ -b "${loop}" ]; then
+        for part in "${loop}"p*; do
+            if mnt=$(findmnt -n -o target -S "$part"); then
+                umount "${mnt}"
+            fi
+        done
+        losetup -d "${loop}"
+    fi
+}
+
+wait_loopdev() {
+    local loop="$1"
+    local seconds="$2"
+
+    until test $((seconds--)) -eq 0 -o -b "${loop}"; do sleep 1; done
+
+    ((++seconds))
+
+    ls -l "${loop}" &> /dev/null
+}
+
+
+
+mkdir -p ../images
+
+# Create an empty disk image
+rootfs=`du -s $chroot_dir | awk '{print $1}'`
+img="../images/cinnamon-${kernel_version}-${board}.img"
+#size="$(( $(wc -c < "${rootfs}" ) / 1024 / 1024 ))"
+size="$((  rootfs / 1024 ))"
+echo "size=$size"
+truncate -s "$(( size + 512 ))M" "${img}"
+
+# Create loop device for disk image
+loop="$(losetup -f)"
+losetup -P "${loop}" "${img}"
+disk="${loop}"
+
+# Cleanup loopdev on early exit
+trap 'cleanup_loopdev ${loop}' EXIT
+
+# Ensure disk is not mounted
+mount_point=/tmp/mnt
+umount "${disk}"* 2> /dev/null || true
+umount ${mount_point}/* 2> /dev/null || true
+mkdir -p ${mount_point}
+
+    # Setup partition table
+    dd if=/dev/zero of="${disk}" count=4096 bs=512
+    parted --script "${disk}" \
+    mklabel gpt \
+    mkpart primary fat32 16MiB 128MiB \
+    mkpart primary ext4 128MiB 100%
+
+    # Create partitions
+    {
+        echo "t"
+        echo "1"
+        echo "EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
+        echo "t"
+        echo "2"
+        echo "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+        echo "w"
+    } | fdisk "${disk}" &> /dev/null || true
+
+    partprobe "${disk}"
+
+    partition_char="$(if [[ ${disk: -1} == [0-9] ]]; then echo p; fi)"
+
+    sleep 1
+
+    wait_loopdev "${disk}${partition_char}2" 60 || {
+        echo "Failure to create ${disk}${partition_char}2 in time"
+        exit 1
+    }
+
+    sleep 1
+
+    wait_loopdev "${disk}${partition_char}1" 60 || {
+        echo "Failure to create ${disk}${partition_char}1 in time"
+        exit 1
+    }
+
+    sleep 1
+
+    # Generate random uuid for bootfs
+    boot_uuid=$(uuidgen | head -c8 )
+
+    # Generate random uuid for rootfs
+    root_uuid=$(uuidgen)
+
+    # Create filesystems on partitions
+    dd if=/dev/zero of="${disk}${partition_char}1" bs=1KB count=10 > /dev/null
+    mkfs.vfat -i "${boot_uuid^^}" -F32 -n EFI "${disk}${partition_char}1"
+
+    # Create filesystems on partitions
+    dd if=/dev/zero of="${disk}${partition_char}2" bs=1KB count=10 > /dev/null
+    mkfs.ext4 -U "${root_uuid}" -L desktop-rootfs "${disk}${partition_char}2"
+
+    # Mount partitions
+    mkdir -p ${mount_point}/{system-boot,writable} 
+    mount "${disk}${partition_char}2" ${mount_point}/writable
+
+
+# Copy the rootfs to root partition
+cd $chroot_dir && tar -cf - --xattrs  ./* | tar xvf - -C ${mount_point}/writable && cd ..
+
+fdt_name="/device-tree/rockchip/${fdt_deb}.dtb"
+
+dtbs_install_path="/lib/firmware/${kernel_version}"
+
+if [ ! -f ${mount_point}/writable${dtbs_install_path}${fdt_name} ]; then
+	echo "${fdt_deb}.dtb not found"
+	exit 1
+fi
+
+fstab_boot_uuid="${boot_uuid:0:4}-${boot_uuid:4}"
+
+# Create fstab entries
+echo "# <file system>     <mount point>  <type>  <options>   <dump>  <fsck>" > ${mount_point}/writable/etc/fstab
+echo "UUID=${root_uuid,,} /              ext4    defaults,x-systemd.growfs    0       1" >> ${mount_point}/writable/etc/fstab
+/bin/echo "UUID=${fstab_boot_uuid^^} /boot/efi vfat    defaults    0       2" >> ${mount_point}/writable/etc/fstab
+
+
+# Write bootloader to disk image
+if [ -f "./u-boot-rockchip.bin" ]; then
+    dd if="./u-boot-rockchip.bin" of="${loop}" seek=1 bs=32k conv=fsync
+else
+	echo "./u-boot-rockchip.bin not found"
+	pwd
+	exit 1
+fi
+
+echo U_BOOT_FDT='"'"device-tree/rockchip/${fdt_deb}.dtb"'"' >> ${mount_point}/writable/etc/default/u-boot
+
+mountpoint="${mount_point}/writable"
+mkdir ${mountpoint}/boot/efi
+mount "${disk}${partition_char}1" ${mountpoint}/boot/efi
+mount dev-live -t devtmpfs "$mountpoint/dev"
+mount devpts-live -t devpts -o nodev,nosuid "$mountpoint/dev/pts"
+mount proc-live -t proc "$mountpoint/proc"
+mount sysfs-live -t sysfs "$mountpoint/sys"
+mount securityfs -t securityfs "$mountpoint/sys/kernel/security"
+
+echo "GRUB_DISABLE_OS_PROBER=true" >> "$mountpoint/etc/default/grub"
+echo "GRUB_DEFAULT_DTB=device-tree/rockchip/${fdt_deb}.dtb" >> $mountpoint/etc/default/grub
+rm -f "$mountpoint/etc/default/grub.d/kdump-tools.cfg"
+
+# u-boot-update 
+chroot ${mount_point}/writable/ /bin/bash -c "u-boot-update"
+
+#debug
+#cp ${mount_point}/writable/boot/extlinux/extlinux.conf overlay
+#cp ${mount_point}/writable/etc/default/u-boot overlay
+
+
+chroot ${mountpoint} /bin/bash -c "grub-install --efi-directory=/boot/efi --target=arm64-efi"
+chroot ${mountpoint} /bin/bash -c "update-grub"
+
+linux_name_tmp=`ls ${mountpoint}/boot/vmlinu?-${kernel_version}`
+linux_name="linux ${linux_name_tmp#"$mountpoint"}"
+initrd_name="initrd /boot/initrd.img-${kernel_version}"
+devicetree_name="devicetree ${dtbs_install_path}${fdt_name}"
+. ${mountpoint}/etc/lsb-release
+
+cat << EOF >> ${mountpoint}/boot/grub/custom.cfg
+font="/usr/share/grub/unicode.pf2"
+set menu_color_normal=white/black
+set timeout=30
+
+menuentry 'Select THIS' --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option "gnulinux-simple-${root_uuid}" {
+	insmod gzio
+	insmod part_gpt
+	insmod ext2
+	set root='hd0,gpt2'
+	if [ x$feature_platform_search_hint = xy ]; then
+	  search --no-floppy --fs-uuid --set=root --hint-bios=hd0,gpt2 --hint-efi=hd0,gpt2 --hint-baremetal=ahci0,gpt2  ${root_uuid}
+	else
+	  search --no-floppy --fs-uuid --set=root ${root_uuid}
+	fi
+${linux_name} root=UUID=${root_uuid}
+${initrd_name}
+${devicetree_name}
+}
+EOF
+
+initrd_name="initrd	/boot/initrd.img-${kernel_version}"
+sed -i "s#$initrd_name#$initrd_name\n$devicetree_name#" ${mountpoint}/boot/grub/grub.cfg
+
+sync --file-system
+sync
+
+umount "$mountpoint/sys/kernel/security"
+umount "$mountpoint/sys"
+umount "$mountpoint/proc"
+umount "$mountpoint/dev/pts"
+umount "$mountpoint/dev"
+umount ${mountpoint}/boot/efi
+
+# Umount partitions
+umount "${disk}${partition_char}2" 2> /dev/null || true
+
+# Remove loop device
+losetup -d "${loop}"
+
+# Exit trap is no longer needed
+trap '' EXIT
+
+#echo -e "\nCompressing $(basename "${img}.xz")\n"
+#xz -6 --force --keep --quiet --threads=0 "${img}"
+#rm "${img}"
+#cd ./images && sha256sum "$(basename "${img}.xz")" > "$(basename "${img}.xz.sha256")"
+exit 0
+
+#if [ ! -d ${mountpoint}/boot/efi/EFI/boot ] && [ ! -d ${mountpoint}/boot/efi/EFI/BOOT ]; then
+#	mkdir ${mountpoint}/boot/efi/EFI/BOOT
+#	cp ${mountpoint}/boot/efi/EFI/debian/grubaa64.efi ${mountpoint}/boot/efi/EFI/BOOT/bootaa64.efi
+#fi
+
