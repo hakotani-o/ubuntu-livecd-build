@@ -30,7 +30,7 @@ jobs:
           python-is-python3 fdisk bc debhelper python3-pyelftools python3-setuptools         \
           python3-distutils-extra python3-pkg-resources swig libfdt-dev libpython3-dev bison \
           livecd-rootfs
-          
+
       - name: u-boot
         run: |
           sudo mount -t tmpfs -o size=1G tmpfs arm64
