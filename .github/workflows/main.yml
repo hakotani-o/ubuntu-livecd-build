@@ -14,9 +14,9 @@ jobs:
       - name: setup
         run: |
           ####################### Set ##############
-          u_boot_defconfig="orangepi-5-plus-rk3588_defconfig"
-          fdt_deb="rk3588-orangepi-5-plus"
-          board="orangepi-5-plus"
+          export u_boot_defconfig="orangepi-5-plus-rk3588_defconfig"
+          export fdt_deb="rk3588-orangepi-5-plus"
+          export board="orangepi-5-plus"
           #########################################
           mkdir  build
 
