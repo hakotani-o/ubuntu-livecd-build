@@ -1,4 +1,4 @@
-name: build-kernel
+name: livecd
 on: workflow_dispatch
 #workflow_dispatch
 #[push]
@@ -23,7 +23,6 @@ jobs:
       - name: Show ubuntu details
         run: |        
           sudo apt update
-          # sudo apt upgrade -y
           sudo apt install -y build-essential gcc-aarch64-linux-gnu devscripts dctrl-tools   \
           qemu-user-static qemu-system-arm qemu-efi-aarch64 u-boot-tools binfmt-support      \
           debootstrap flex libssl-dev bc rsync kmod cpio xz-utils fakeroot parted            \
