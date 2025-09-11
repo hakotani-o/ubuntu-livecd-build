@@ -32,22 +32,26 @@ jobs:
           python3-distutils-extra python3-pkg-resources swig libfdt-dev libpython3-dev bison livecd-rootfs
 
       - name: u-boot
-        sudo mount -t tmpfs -o size=1G tmpfs arm64
-        cd arm64
-        git clone --depth 1 https://github.com/rockchip-linux/rkbin
-        DDR=`ls rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2400MHz*.bin`
-        BL31=`ls rkbin/bin/rk35/rk3588_bl31*.elf`
-        git clone --depth 1 https://github.com/u-boot/u-boot.git -b v2025.01
-        cd u-boot
-        if [ ! -f configs/$u_boot_defconfig ]; then
-          echo "$u_boot_defconfig not found in configs"
-          cd ..
-          exit 1
-        fi
-        sed -i 's/scsi //' include/configs/rockchip-common.h
-        sed -i 's/mmc1/scsi mmc1/' include/configs/rockchip-common.h
-        sed -i 's/#ifndef CONFIG_XPL_BUILD/#ifndef CONFIG_XPL_BUILD\n\n# define BOOT_TARGET_DEVICES_SCSI(func)  func(SCSI, scsi, 0, 0, 1) func(SCSI, scsi, 0, 0, 2)/' include/configs/rockchip-common.h
-        make $u_boot_defconfig && make
-        cp u-boot-rockchip.bin ../../build/
-        sudo umount arm64
+        run: |
+          sudo mount -t tmpfs -o size=1G tmpfs arm64
+          cd arm64
+          git clone --depth 1 https://github.com/rockchip-linux/rkbin
+          DDR=`ls rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2400MHz*.bin`
+          BL31=`ls rkbin/bin/rk35/rk3588_bl31*.elf`
+          git clone --depth 1 https://github.com/u-boot/u-boot.git -b v2025.01
+          cd u-boot
+          if [ ! -f configs/$u_boot_defconfig ]; then
+            echo "$u_boot_defconfig not found in configs"
+            cd ..
+            exit 1
+          fi
+         sed -i 's/scsi //' include/configs/rockchip-common.h
+          sed -i 's/mmc1/scsi mmc1/' include/configs/rockchip-common.h
+          sed -i 's/#ifndef CONFIG_XPL_BUILD/#ifndef CONFIG_XPL_BUILD\n\n# define BOOT_TARGET_DEVICES_SCSI(func)  func(SCSI, scsi, 0, 0, 1) func(SCSI, scsi, 0, 0, 2)/' include/configs/rockchip-common.h
+          make $u_boot_defconfig && make
+          cp u-boot-rockchip.bin ../../build/
+          sudo umount arm64
 
+      - name: livecd-build
+        run: |
+          sudo /bin/bash livecd-build
