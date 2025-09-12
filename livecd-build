@@ -45,12 +45,8 @@ if [ "${PROJECT}" == "ubuntucinnamon" ]; then
     # Specific packages to install for ubuntu desktop
     (
         echo "ubuntucinnamon-desktop"
-        echo "oem-config-gtk"
-        echo "ubiquity-frontend-gtk"
-        echo "ubiquity-slideshow-ubuntu"
         echo "linux-firmware"
         echo "cloud-initramfs-growroot"
-        echo "yaru-theme-unity"
         echo "aptdaemon"
         echo "grub-efi-arm64"
         echo "initramfs-tools"
@@ -206,6 +202,7 @@ sed -i 's/#ADD_EXTRA_GROUPS=.*/ADD_EXTRA_GROUPS=1/g' $chroot_dir/etc/adduser.con
 
 # Create the oem user account only if it doesn't already exist
 if ! id "oem" &>/dev/null; then
+chroot $chroot_dir apt-get -y oem-config-prepare oem-config oem-config-gtk ubiquity-frontend-gtk ubiquity-slideshow-ubuntu yaru-theme-unity
 chroot $chroot_dir apt-get -y oem-config-prepare
 chroot $chroot_dir /usr/sbin/useradd -d /home/oem -G adm,sudo,video -m -N -u 29999 oem
 chroot $chroot_dir /usr/sbin/oem-config-prepare --quiet
