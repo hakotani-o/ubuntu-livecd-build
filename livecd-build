@@ -207,6 +207,7 @@ sed -i 's/#ADD_EXTRA_GROUPS=.*/ADD_EXTRA_GROUPS=1/g' $chroot_dir/etc/adduser.con
 
 # Create the oem user account only if it doesn't already exist
 if ! id "oem" &>/dev/null; then
+chroot $chroot_dir apt-get -y oem-config-prepare
 chroot $chroot_dir /usr/sbin/useradd -d /home/oem -G adm,sudo,video -m -N -u 29999 oem
 chroot $chroot_dir /usr/sbin/oem-config-prepare --quiet
 chroot $chroot_dir touch "/var/lib/oem-config/run"
