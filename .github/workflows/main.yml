@@ -57,6 +57,7 @@ jobs:
           make $u_boot_defconfig
           make || true
           cp u-boot-rockchip.bin ../../build/
+          cd ../..
           sudo umount arm64
 
       - name: livecd-build
