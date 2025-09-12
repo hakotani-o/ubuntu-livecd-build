@@ -44,6 +44,8 @@ jobs:
           BL31=`ls rkbin/bin/rk35/rk3588_bl31*.elf`
           git clone --depth 1 https://github.com/u-boot/u-boot.git -b v2025.01
           cd u-boot
+          export BL31=../$BL31
+          export ROCKCHIP_TPL="../$DDR"
           if [ ! -f configs/$u_boot_defconfig ]; then
             echo "$u_boot_defconfig not found in configs"
             cd ..
