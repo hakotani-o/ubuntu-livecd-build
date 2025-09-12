@@ -11,15 +11,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: setup
-        run: |
-          ####################### Set ##############
-          export u_boot_defconfig="orangepi-5-plus-rk3588_defconfig"
-          export fdt_deb="rk3588-orangepi-5-plus"
-          export board="orangepi-5-plus"
-          #########################################
-          mkdir  build
-
       - name: Show ubuntu details
         run: |        
           sudo apt update
@@ -30,9 +21,13 @@ jobs:
           python-is-python3 fdisk bc debhelper python3-pyelftools python3-setuptools         \
           python3-distutils-extra python3-pkg-resources swig libfdt-dev libpython3-dev bison \
           livecd-rootfs
+          mkdir  build
 
       - name: u-boot
         run: |
+          ####################### Set ##############
+          export fdt_deb="rk3588-orangepi-5-plus"
+          #########################################
           mkdir arm64
           sudo mount -t tmpfs -o size=1G tmpfs arm64
           cd arm64
@@ -55,6 +50,10 @@ jobs:
 
       - name: livecd-build
         run: |
+          ####################### Set ##############
+          export u_boot_defconfig="orangepi-5-plus-rk3588_defconfig"
+          export board="orangepi-5-plus"
+          #########################################
           sudo /bin/bash livecd-build
 
       - name: Upload a kernel
