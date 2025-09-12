@@ -228,7 +228,7 @@ kernel_version="`ls -1 $chroot_dir/boot/vmlinu?-*|sed 's#-# #' | awk '{ print $2
 
 # Override u-boot-menu config
 mkdir -p $chroot_dir/usr/share/u-boot-menu/conf.d
-cat << 'EOF' > $1/usr/share/u-boot-menu/conf.d/ubuntu.conf
+cat << 'EOF' > $chroot_dir/usr/share/u-boot-menu/conf.d/ubuntu.conf
 U_BOOT_UPDATE="true"
 U_BOOT_PROMPT="1"
 U_BOOT_PARAMETERS="$(cat /etc/kernel/cmdline)"
