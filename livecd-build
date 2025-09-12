@@ -466,7 +466,7 @@ umount "${disk}${partition_char}2" 2> /dev/null || true
 
 # Remove loop device
 losetup -d "${loop}"
-
+cd ..
 # Exit trap is no longer needed
 trap '' EXIT
 
