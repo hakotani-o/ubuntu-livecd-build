@@ -18,6 +18,7 @@ export ARCH=arm64
 export IMAGEFORMAT=none
 export IMAGE_TARGETS=none
 export EXTRA_PPAS=""
+export ID_LIKE=arm64
 
 # Populate the configuration directory for live build
 lb config \
