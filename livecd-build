@@ -34,8 +34,7 @@ lb config \
     --parent-mirror-binary-security "$Uri" \
     --mirror-binary "$Uri" \
     --parent-mirror-binary "$Uri" \
-    --keyring-packages ubuntu-keyring \
-    --linux-flavours rockchip
+    --keyring-packages ubuntu-keyring
 
 
 sed -i 's/libgl1-amber-dri//g' config/package-lists/livecd-rootfs.list.chroot_install
@@ -45,6 +44,12 @@ if [ "${PROJECT}" == "ubuntucinnamon" ]; then
     # Specific packages to install for ubuntu desktop
     (
         echo "ubuntucinnamon-desktop"
+		echo "oem-config-prepare" 
+		echo "oem-config"
+		echo "oem-config-gtk"
+		echo "ubiquity-frontend-gtk"
+		echo "ubiquity-slideshow-ubuntu"
+		echo "yaru-theme-unity"
         echo "linux-firmware"
         echo "cloud-initramfs-growroot"
         echo "aptdaemon"
@@ -202,7 +207,6 @@ sed -i 's/#ADD_EXTRA_GROUPS=.*/ADD_EXTRA_GROUPS=1/g' $chroot_dir/etc/adduser.con
 
 # Create the oem user account only if it doesn't already exist
 if ! id "oem" &>/dev/null; then
-chroot $chroot_dir apt-get -y install oem-config-prepare oem-config oem-config-gtk ubiquity-frontend-gtk ubiquity-slideshow-ubuntu yaru-theme-unity
 chroot $chroot_dir /usr/sbin/useradd -d /home/oem -G adm,sudo,video -m -N -u 29999 oem
 chroot $chroot_dir /usr/sbin/oem-config-prepare --quiet
 chroot $chroot_dir touch "/var/lib/oem-config/run"
