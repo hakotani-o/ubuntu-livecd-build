@@ -1,0 +1,5 @@
+####################### Set ##############
+export u_boot_defconfig="orangepi-5-plus-rk3588_defconfig"
+export export fdt_deb="rk3588-orangepi-5-plus"
+export board="orangepi-5-plus"
+#########################################
