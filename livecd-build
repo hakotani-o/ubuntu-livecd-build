@@ -226,7 +226,6 @@ echo -n "rootwait rw console=ttyS2,1500000 console=tty1 cgroup_enable=cpuset cgr
 echo -n " quiet splash plymouth.ignore-serial-consoles" >> $chroot_dir/etc/kernel/cmdline
 
 kernel_version="`ls -1 $chroot_dir/boot/vmlinu?-*|sed 's#-# #' | awk '{ print $2 }'`"
-echo "kernel_version=$kernel_version"
 
 # Override u-boot-menu config
 mkdir -p $chroot_dir/usr/share/u-boot-menu/conf.d
@@ -377,7 +376,7 @@ fdt_name="/device-tree/rockchip/${fdt_deb}.dtb"
 dtbs_install_path="/lib/firmware/${kernel_version}"
 
 if [ ! -f ${mount_point}/writable${dtbs_install_path}${fdt_name} ]; then
-	echo "${mount_point}/writable${dtbs_install_path}${fdt_name}.dtb not found"
+	echo "${mount_point}/writable${dtbs_install_path}${fdt_name} not found"
 	exit 1
 fi
 
