@@ -71,10 +71,6 @@ jobs:
 
       - name: livecd-build
         run: |
-          ####################### Set ##############
-          export export fdt_deb="rk3588-orangepi-5-plus"
-          export board="orangepi-5-plus"
-          #########################################
           sudo /bin/bash livecd-build
 
       - name: Upload a kernel
