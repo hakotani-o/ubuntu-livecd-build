@@ -377,7 +377,7 @@ fdt_name="/device-tree/rockchip/${fdt_deb}.dtb"
 dtbs_install_path="/lib/firmware/${kernel_version}"
 
 if [ ! -f ${mount_point}/writable${dtbs_install_path}${fdt_name} ]; then
-	echo "${fdt_deb}.dtb not found"
+	echo "${mount_point}/writable${dtbs_install_path}${fdt_name}.dtb not found"
 	exit 1
 fi
 
