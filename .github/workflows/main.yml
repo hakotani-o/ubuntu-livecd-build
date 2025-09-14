@@ -44,9 +44,7 @@ jobs:
 
       - name: u-boot
         run: |
-          ####################### Set ##############
-          u_boot_defconfig="orangepi-5-plus-rk3588_defconfig"
-          #########################################
+          . ./setup
           mkdir arm64
           sudo mount -t tmpfs -o size=1G tmpfs arm64
           cd arm64
