@@ -287,6 +287,7 @@ wait_loopdev() {
 
 
 mkdir -p ../images
+. ../setup
 
 # Create an empty disk image
 rootfs=`du -s $chroot_dir | awk '{print $1}'`
