@@ -369,7 +369,7 @@ mkdir -p ${mount_point}
 
 
 # Copy the rootfs to root partition
-cd $chroot_dir && tar -cf - --xattrs  ./* | tar xvf - -C ${mount_point}/writable && cd ..
+cd $chroot_dir && tar -cf - --xattrs  ./* | tar xf - -C ${mount_point}/writable && cd ..
 
 fdt_name="/device-tree/rockchip/${fdt_deb}.dtb"
 
