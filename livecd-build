@@ -157,6 +157,8 @@ fi
 # Build the rootfs
 lb build 
 
+rm -rf auto binary binary.log cache chroot.bootstrap chroot.headers chroot.packages.minimal chroot.packages.minimal.standard chroot.packages.minimal.standard.live config livecd.ubuntucinnamon.initrd livecd.ubuntucinnamon.initrd-generic livecd.ubuntucinnamon.install-sources.yaml livecd.ubuntucinnamon.kernel livecd.ubuntucinnamon.kernel-generic livecd.ubuntucinnamon.manifest livecd.ubuntucinnamon.minimal.manifest livecd.ubuntucinnamon.minimal.manifest.full livecd.ubuntucinnamon.minimal.size livecd.ubuntucinnamon.minimal.squashfs livecd.ubuntucinnamon.minimal.standard.live.manifest livecd.ubuntucinnamon.minimal.standard.live.manifest.full livecd.ubuntucinnamon.minimal.standard.live.size livecd.ubuntucinnamon.minimal.standard.live.squashfs livecd.ubuntucinnamon.minimal.standard.manifest livecd.ubuntucinnamon.minimal.standard.manifest.full livecd.ubuntucinnamon.minimal.standard.size livecd.ubuntucinnamon.minimal.standard.squashfs livecd.ubuntucinnamon.size local overlay.minimal.standard overlay.minimal.standard-2 overlay.minimal.standard.live overlay.minimal.standard.live-2 sources.list.sha ubuntu.sources.sha ubuntucinnamon work
+
 chroot_dir="overlay.minimal"
 
 setup_mountpoint() {
