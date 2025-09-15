@@ -306,7 +306,9 @@ disk="${loop}"
 trap 'cleanup_loopdev ${loop}' EXIT
 
 # Ensure disk is not mounted
-mount_point=/tmp/mnt
+mkdir -p /mnt
+#mount_point=/tmp/mnt
+mount_point=/mnt
 umount "${disk}"* 2> /dev/null || true
 umount ${mount_point}/* 2> /dev/null || true
 mkdir -p ${mount_point}
