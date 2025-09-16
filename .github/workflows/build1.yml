@@ -92,6 +92,7 @@ jobs:
 
           - name: lb config
             run: |
+              cd build
               sudo lb config \
                 --architecture arm64 \
                 --bootstrap-qemu-arch arm64 \
