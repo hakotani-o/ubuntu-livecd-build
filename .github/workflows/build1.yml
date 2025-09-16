@@ -221,7 +221,7 @@ command:
            echo "usb-modeswitch" >> config/package-lists/my.list.chroot
            echo "usb-modeswitch-data" >> config/package-lists/my.list.chroot
           fi
-	 
+
 # Build the rootfs
       - name: lb build
         run: |
