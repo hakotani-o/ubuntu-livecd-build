@@ -1,4 +1,4 @@
-name: livecd
+name: livecd-build
 on: workflow_dispatch
 #workflow_dispatch
 #[push]
@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show ubuntu details
+      - name: setup tools
         run: |        
           sudo apt update
           sudo apt install -y build-essential gcc-aarch64-linux-gnu devscripts dctrl-tools   \
@@ -71,7 +71,163 @@ jobs:
 
       - name: livecd build
         run: |
-          sudo /bin/bash livecd-build
+          cd build || exit 1
+          mkdir chroot
+          chroot_dir="overlay.minimal"
+          # Query the system to locate livecd-rootfs auto script installation path
+          cp -a /usr/share/livecd-rootfs/live-build/auto .
+          cp -a /usr/share/livecd-rootfs/live-build/ubuntucinnamon .
+          export SUBPROJECT=desktop-preinstalled
+          export PROJECT=ubuntucinnamon
+          name="desktop"
+          export SUITE=plucky
+          Uri="https://mirror.hashy0917.net/ubuntu-ports/"
+          export ARCH=arm64
+          export IMAGEFORMAT=none
+          export IMAGE_TARGETS=none
+          export EXTRA_PPAS=""
+          export ID_LIKE=arm64
+
+
+      - name: lb config
+        run: |
+          sudo lb config \
+            --architecture arm64 \
+            --bootstrap-qemu-arch arm64 \
+            --bootstrap-qemu-static /usr/bin/qemu-aarch64-static \
+            --archive-areas "main restricted universe multiverse" \
+            --parent-archive-areas "main restricted universe multiverse" \
+            --mirror-bootstrap "$Uri" \
+            --parent-mirror-bootstrap "$Uri" \
+            --mirror-chroot-security "$Uri" \
+            --parent-mirror-chroot-security "$Uri" \
+            --mirror-binary-security "$Uri" \
+            --parent-mirror-binary-security "$Uri" \
+            --mirror-binary "$Uri" \
+            --parent-mirror-binary "$Uri" \
+            --keyring-packages ubuntu-keyring
+
+          sed -i 's/libgl1-amber-dri//g' config/package-lists/livecd-rootfs.list.chroot_install
+          
+          if [ "${PROJECT}" == "ubuntucinnamon" ]; then
+          (
+              echo "ubuntucinnamon-desktop"
+		          echo "oem-config-prepare" 
+		          echo "oem-config"
+		          echo "oem-config-gtk"
+		          echo "ubiquity-frontend-gtk"
+		          echo "ubiquity-slideshow-ubuntu"
+		          echo "yaru-theme-unity"
+              echo "linux-firmware"
+              echo "cloud-initramfs-growroot"
+              echo "aptdaemon"
+              echo "grub-efi-arm64"
+              echo "initramfs-tools"
+              echo "software-properties-common"
+              echo "apt-utils"
+              echo "build-essential"
+              echo "gcc-aarch64-linux-gnu"
+              echo "bison"
+              echo "qemu-user-static"
+              echo "qemu-system-arm"
+              echo "qemu-efi-aarch64"
+              echo "binfmt-support"
+              echo "debootstrap"
+              echo "flex"
+              echo "libssl-dev"
+              echo "bc"
+              echo "rsync"
+              echo "kmod"
+              echo "cpio"
+              echo "xz-utils"
+              echo "fakeroot"
+              echo "parted"
+              echo "udev"
+              echo "dosfstools"
+              echo "uuid-runtime"
+              echo "device-tree-compiler"
+              echo "python3"
+              echo "python-is-python3"
+              echo "fdisk"
+              echo "debhelper"
+              echo "python3-pyelftools"
+              echo "python3-setuptools"
+              echo "python3-pkg-resources"
+              echo "swig"
+              echo "libfdt-dev"
+              echo "libpython3-dev"
+              echo "gawk"
+              echo "git"
+              echo "build-essential"
+              echo "ncurses-dev"
+              echo "libssl-dev"
+              echo "libelf-dev"
+              echo "sudo"
+              echo "libgnutls28-dev"
+              echo "python3-mako"
+              echo "libwayland-egl-backend-dev"
+              echo "libxcb-dri3-dev"
+              echo "libxcb-dri2-0-dev"
+              echo "libxcb-glx0-dev"
+              echo "libx11-xcb-dev"
+              echo "libxcb-present-dev"
+              echo "libxcb-sync-dev"
+              echo "libxxf86vm-dev"
+              echo "libxshmfence-dev"
+              echo "libxrandr-dev"
+              echo "libwayland-dev"
+              echo "libxdamage-dev"
+              echo "libxext-dev"
+              echo "libxfixes-dev"
+              echo "x11proto-dri2-dev"
+              echo "x11proto-present-dev"
+              echo "x11proto-gl-dev"
+              echo "x11proto-xf86vidmode-dev"
+              echo "libexpat1-dev"
+              echo "libudev-dev"
+              echo "gettext"
+              echo "mesa-utils"
+              echo "xutils-dev"
+              echo "libpthread-stubs0-dev"
+              echo "ninja-build"
+              echo "cmake"
+              echo "valgrind"
+              echo "python3-pip"
+              echo "pkg-config"
+              echo "zlib1g-dev"
+              echo "wayland-protocols"
+              echo "libxcb-shm0-dev"
+              echo "meson"
+              echo "llvm-20-dev"
+              echo "libclang-cpp20-dev"
+              echo "libclc-20-dev"
+              echo "libllvmspirvlib-20-dev"
+              echo "spirv-tools"
+              echo "libopencl-clang-20-dev"
+              echo "clang-20"
+              echo "libclang-20-dev"
+              echo "llvm-spirv-20"
+              echo "libclang-common-20-dev"
+              echo "libunwind-20-dev"
+              echo "lm-sensors"
+              echo "ibus-mozc"
+              echo "u-boot-tools"
+              echo "u-boot-menu"
+              echo "localechooser-data"
+              echo "usb-modeswitch"
+              echo "usb-modeswitch-data"
+          ) >> config/package-lists/my.list.chroot
+         fi
+
+# Build the rootfs
+      - name: lb build
+        run: |
+          sudo lb build 
+
+          rm -rf auto binary binary.log cache chroot.bootstrap chroot.headers chroot.packages.minimal chroot.packages.minimal.standard chroot.packages.minimal.standard.live config livecd.ubuntucinnamon.initrd livecd.ubuntucinnamon.initrd-generic livecd.ubuntucinnamon.install-sources.yaml livecd.ubuntucinnamon.kernel livecd.ubuntucinnamon.kernel-generic livecd.ubuntucinnamon.manifest livecd.ubuntucinnamon.minimal.manifest livecd.ubuntucinnamon.minimal.manifest.full livecd.ubuntucinnamon.minimal.size livecd.ubuntucinnamon.minimal.squashfs livecd.ubuntucinnamon.minimal.standard.live.manifest livecd.ubuntucinnamon.minimal.standard.live.manifest.full livecd.ubuntucinnamon.minimal.standard.live.size livecd.ubuntucinnamon.minimal.standard.live.squashfs livecd.ubuntucinnamon.minimal.standard.manifest livecd.ubuntucinnamon.minimal.standard.manifest.full livecd.ubuntucinnamon.minimal.standard.size livecd.ubuntucinnamon.minimal.standard.squashfs livecd.ubuntucinnamon.size local overlay.minimal.standard overlay.minimal.standard-2 overlay.minimal.standard.live overlay.minimal.standard.live-2 sources.list.sha ubuntu.sources.sha ubuntucinnamon work
+
+          chroot_dir="overlay.minimal"
+
 
       - name: Upload a kernel
         uses: actions/upload-artifact@v4.5.0
