@@ -108,6 +108,7 @@ jobs:
                 --parent-mirror-binary "$Uri" \
                 --keyring-packages ubuntu-keyring
 
+                ls && pwd
               sudo sed -i 's/libgl1-amber-dri//g' config/package-lists/livecd-rootfs.list.chroot_install
 
               if [ "${PROJECT}" == "ubuntucinnamon" ]; then
