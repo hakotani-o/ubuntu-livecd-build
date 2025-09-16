@@ -110,7 +110,7 @@ jobs:
 
                 ls && pwd
                 ls  config/package-lists/
-              sudo sed -i 's/libgl1-amber-dri//g' config/package-lists/livecd-rootfs.list.chroot_install
+              #sudo sed -i 's/libgl1-amber-dri//g' config/package-lists/livecd-rootfs.list.chroot_install
 
               if [ "${PROJECT}" == "ubuntucinnamon" ]; then
                sudo echo "ubuntucinnamon-desktop" >> config/package-lists/my.list.chroot
