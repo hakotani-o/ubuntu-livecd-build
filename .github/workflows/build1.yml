@@ -78,7 +78,7 @@ jobs:
               export IMAGE_TARGETS=none
               export EXTRA_PPAS=""
               export ID_LIKE=arm64
-              sudo lb config --architecture arm64 --bootstrap-qemu-arch arm64 --bootstrap-qemu-static /usr/bin/qemu-aarch64-static --archive-areas "main restricted universe multiverse" --parent-archive-areas "main restricted universe multiverse" --mirror-bootstrap "$Uri" --parent-mirror-bootstrap "$Uri" --mirror-chroot-security "$Uri" --parent-mirror-chroot-security "$Uri" --mirror-binary-security "$Uri" --parent-mirror-binary-security "$Uri" --mirror-binary "$Uri" --parent-mirror-binary "$Uri" --keyring-packages ubuntu-keyring
+              sudo lb config --architectures arm64 --bootstrap-qemu-arch arm64 --bootstrap-qemu-static /usr/bin/qemu-aarch64-static --archive-areas "main restricted universe multiverse" --parent-archive-areas "main restricted universe multiverse" --mirror-bootstrap "$Uri" --parent-mirror-bootstrap "$Uri" --mirror-chroot-security "$Uri" --parent-mirror-chroot-security "$Uri" --mirror-binary-security "$Uri" --parent-mirror-binary-security "$Uri" --mirror-binary "$Uri" --parent-mirror-binary "$Uri" --keyring-packages ubuntu-keyring
 
                 ls && pwd
                 ls  config/package-lists/
