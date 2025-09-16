@@ -73,7 +73,7 @@ jobs:
 
           - name: livecd build
             run: |
-              cd build || exit 1
+              cd build
               chroot_dir="overlay.minimal"
               # Query the system to locate livecd-rootfs auto script installation path
               cp -a /usr/share/livecd-rootfs/live-build/auto .
