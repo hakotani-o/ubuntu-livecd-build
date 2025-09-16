@@ -5,15 +5,11 @@ on: workflow_dispatch
 jobs:
     example:
         runs-on: ubuntu-24.04-arm
-            defaults:
-            run:
-            shell: bash
+        defaults:
+         run:
+          shell: bash
 
-
-command:
-    name: Use Linux commands
-    steps:
-    
+        steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
           - name: Checkout
             uses: actions/checkout@v4
