@@ -3,239 +3,238 @@ on: workflow_dispatch
 #workflow_dispatch
 #[push]
 jobs:		
-defaults:
-run:
-shell: bash
-command:
-    name: Use Linux commands
-    runs-on: ubuntu-24.04-arm
-    steps:
+    defaults:
+        shell: bash
+        command:
+        name: Use Linux commands
+        runs-on: ubuntu-24.04-arm
+        steps:
 
 
     
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout
-        uses: actions/checkout@v4
+          - name: Checkout
+            uses: actions/checkout@v4
 
-      - name: setup tools
-        run: |        
-          sudo apt update
-          sudo apt install -y build-essential gcc-aarch64-linux-gnu devscripts dctrl-tools   \
-          qemu-user-static qemu-system-arm qemu-efi-aarch64 u-boot-tools binfmt-support      \
-          debootstrap flex libssl-dev bc rsync kmod cpio xz-utils fakeroot parted            \
-          udev dosfstools uuid-runtime git-lfs device-tree-compiler python3 dctrl-tools      \
-          python-is-python3 fdisk bc debhelper python3-pyelftools python3-setuptools         \
-          python3-distutils-extra python3-pkg-resources swig libfdt-dev libpython3-dev bison \
-          livecd-rootfs
-          sudo apt-get -y install  build-essential gcc-aarch64-linux-gnu bison \
-          qemu-user-static qemu-system-arm qemu-efi-aarch64 binfmt-support \
-          debootstrap flex libssl-dev bc rsync kmod cpio xz-utils fakeroot parted \
-          udev dosfstools uuid-runtime git-lfs device-tree-compiler python3 \
-          python-is-python3 fdisk bc debhelper python3-pyelftools python3-setuptools \
-          python3-pkg-resources swig libfdt-dev libpython3-dev gawk \
-          build-essential ncurses-dev xz-utils libssl-dev bc flex \
-          libelf-dev bison libgnutls28-dev
-          mkdir  build
+          - name: setup tools
+            run: |        
+              sudo apt update
+              sudo apt install -y build-essential gcc-aarch64-linux-gnu devscripts dctrl-tools   \
+              qemu-user-static qemu-system-arm qemu-efi-aarch64 u-boot-tools binfmt-support      \
+              debootstrap flex libssl-dev bc rsync kmod cpio xz-utils fakeroot parted            \
+              udev dosfstools uuid-runtime git-lfs device-tree-compiler python3 dctrl-tools      \
+              python-is-python3 fdisk bc debhelper python3-pyelftools python3-setuptools         \
+              python3-distutils-extra python3-pkg-resources swig libfdt-dev libpython3-dev bison \
+              livecd-rootfs
+              sudo apt-get -y install  build-essential gcc-aarch64-linux-gnu bison \
+              qemu-user-static qemu-system-arm qemu-efi-aarch64 binfmt-support \
+              debootstrap flex libssl-dev bc rsync kmod cpio xz-utils fakeroot parted \
+              udev dosfstools uuid-runtime git-lfs device-tree-compiler python3 \
+              python-is-python3 fdisk bc debhelper python3-pyelftools python3-setuptools \
+              python3-pkg-resources swig libfdt-dev libpython3-dev gawk \
+              build-essential ncurses-dev xz-utils libssl-dev bc flex \
+              libelf-dev bison libgnutls28-dev
+              mkdir  build
 
-      - name: u-boot
-        run: |
-          . ./setup
-          mkdir arm64
-          sudo mount -t tmpfs -o size=1G tmpfs arm64
-          cd arm64
-          git clone --depth 1 https://github.com/rockchip-linux/rkbin
-          DDR=`ls rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2400MHz*.bin`
-          BL31=`ls rkbin/bin/rk35/rk3588_bl31*.elf`
-          git clone --depth 1 https://github.com/u-boot/u-boot.git -b v2025.01
-          cd u-boot
-          export BL31=../$BL31
-          export ROCKCHIP_TPL="../$DDR"
-          if [ ! -f configs/$u_boot_defconfig ]; then
-            echo "$u_boot_defconfig not found in configs"
-            cd ..
-            exit 1
-          fi
-          sed -i 's/scsi //' include/configs/rockchip-common.h
-          sed -i 's/mmc1/scsi mmc1/' include/configs/rockchip-common.h
-          sed -i 's/#ifndef CONFIG_XPL_BUILD/#ifndef CONFIG_XPL_BUILD\n\n# define BOOT_TARGET_DEVICES_SCSI(func)  func(SCSI, scsi, 0, 0, 1) func(SCSI, scsi, 0, 0, 2)/' include/configs/rockchip-common.h
-          make $u_boot_defconfig
-          make || true
-          cp u-boot-rockchip.bin ../../build/
-          cd ../..
-          sudo umount arm64
+          - name: u-boot
+            run: |
+              . ./setup
+              mkdir arm64
+              sudo mount -t tmpfs -o size=1G tmpfs arm64
+              cd arm64
+              git clone --depth 1 https://github.com/rockchip-linux/rkbin
+              DDR=`ls rkbin/bin/rk35/rk3588_ddr_lp4_2112MHz_lp5_2400MHz*.bin`
+              BL31=`ls rkbin/bin/rk35/rk3588_bl31*.elf`
+              git clone --depth 1 https://github.com/u-boot/u-boot.git -b v2025.01
+              cd u-boot
+              export BL31=../$BL31
+              export ROCKCHIP_TPL="../$DDR"
+              if [ ! -f configs/$u_boot_defconfig ]; then
+                echo "$u_boot_defconfig not found in configs"
+                cd ..
+                exit 1
+              fi
+              sed -i 's/scsi //' include/configs/rockchip-common.h
+              sed -i 's/mmc1/scsi mmc1/' include/configs/rockchip-common.h
+              sed -i 's/#ifndef CONFIG_XPL_BUILD/#ifndef CONFIG_XPL_BUILD\n\n# define BOOT_TARGET_DEVICES_SCSI(func)  func(SCSI, scsi, 0, 0, 1) func(SCSI, scsi, 0, 0, 2)/' include/configs/rockchip-common.h
+              make $u_boot_defconfig
+              make || true
+              cp u-boot-rockchip.bin ../../build/
+              cd ../..
+              sudo umount arm64
 
-      - name: Get more disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: false
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
+          - name: Get more disk space
+            uses: jlumbroso/free-disk-space@main
+            with:
+              tool-cache: false
+              android: true
+              dotnet: true
+              haskell: true
+              large-packages: true
+              swap-storage: true
 
-      - name: livecd build
-        run: |
-          cd build || exit 1
-          mkdir chroot
-          chroot_dir="overlay.minimal"
-          # Query the system to locate livecd-rootfs auto script installation path
-          cp -a /usr/share/livecd-rootfs/live-build/auto .
-          cp -a /usr/share/livecd-rootfs/live-build/ubuntucinnamon .
-          export SUBPROJECT=desktop-preinstalled
-          export PROJECT=ubuntucinnamon
-          name="desktop"
-          export SUITE=plucky
-          Uri="https://mirror.hashy0917.net/ubuntu-ports/"
-          export ARCH=arm64
-          export IMAGEFORMAT=none
-          export IMAGE_TARGETS=none
-          export EXTRA_PPAS=""
-          export ID_LIKE=arm64
+          - name: livecd build
+            run: |
+              cd build || exit 1
+              mkdir chroot
+              chroot_dir="overlay.minimal"
+              # Query the system to locate livecd-rootfs auto script installation path
+              cp -a /usr/share/livecd-rootfs/live-build/auto .
+              cp -a /usr/share/livecd-rootfs/live-build/ubuntucinnamon .
+              export SUBPROJECT=desktop-preinstalled
+              export PROJECT=ubuntucinnamon
+              name="desktop"
+              export SUITE=plucky
+              Uri="https://mirror.hashy0917.net/ubuntu-ports/"
+              export ARCH=arm64
+              export IMAGEFORMAT=none
+              export IMAGE_TARGETS=none
+              export EXTRA_PPAS=""
+              export ID_LIKE=arm64
 
 
-      - name: lb config
-        run: |
-          sudo lb config \
-            --architecture arm64 \
-            --bootstrap-qemu-arch arm64 \
-            --bootstrap-qemu-static /usr/bin/qemu-aarch64-static \
-            --archive-areas "main restricted universe multiverse" \
-            --parent-archive-areas "main restricted universe multiverse" \
-            --mirror-bootstrap "$Uri" \
-            --parent-mirror-bootstrap "$Uri" \
-            --mirror-chroot-security "$Uri" \
-            --parent-mirror-chroot-security "$Uri" \
-            --mirror-binary-security "$Uri" \
-            --parent-mirror-binary-security "$Uri" \
-            --mirror-binary "$Uri" \
-            --parent-mirror-binary "$Uri" \
-            --keyring-packages ubuntu-keyring
+          - name: lb config
+            run: |
+              sudo lb config \
+                --architecture arm64 \
+                --bootstrap-qemu-arch arm64 \
+                --bootstrap-qemu-static /usr/bin/qemu-aarch64-static \
+                --archive-areas "main restricted universe multiverse" \
+                --parent-archive-areas "main restricted universe multiverse" \
+                --mirror-bootstrap "$Uri" \
+                --parent-mirror-bootstrap "$Uri" \
+                --mirror-chroot-security "$Uri" \
+                --parent-mirror-chroot-security "$Uri" \
+                --mirror-binary-security "$Uri" \
+                --parent-mirror-binary-security "$Uri" \
+                --mirror-binary "$Uri" \
+                --parent-mirror-binary "$Uri" \
+                --keyring-packages ubuntu-keyring
 
-          sed -i 's/libgl1-amber-dri//g' config/package-lists/livecd-rootfs.list.chroot_install
+              sed -i 's/libgl1-amber-dri//g' config/package-lists/livecd-rootfs.list.chroot_install
           
-          if [ "${PROJECT}" == "ubuntucinnamon" ]; then
-           echo "ubuntucinnamon-desktop" >> config/package-lists/my.list.chroot
-           echo "oem-config-prepare" >> config/package-lists/my.list.chroot
-           echo "oem-config" >> config/package-lists/my.list.chroot
-           echo "oem-config-gtk" >> config/package-lists/my.list.chroot
-           echo "ubiquity-frontend-gtk" >> config/package-lists/my.list.chroot
-           echo "ubiquity-slideshow-ubuntu" >> config/package-lists/my.list.chroot
-           echo "yaru-theme-unity" >> config/package-lists/my.list.chroot
-           echo "linux-firmware" >> config/package-lists/my.list.chroot
-           echo "cloud-initramfs-growroot" >> config/package-lists/my.list.chroot
-           echo "aptdaemon" >> config/package-lists/my.list.chroot
-           echo "grub-efi-arm64" >> config/package-lists/my.list.chroot
-           echo "initramfs-tools" >> config/package-lists/my.list.chroot
-           echo "software-properties-common" >> config/package-lists/my.list.chroot
-           echo "apt-utils" >> config/package-lists/my.list.chroot
-           echo "build-essential" >> config/package-lists/my.list.chroot
-           echo "gcc-aarch64-linux-gnu" >> config/package-lists/my.list.chroot
-           echo "bison" >> config/package-lists/my.list.chroot
-           echo "qemu-user-static" >> config/package-lists/my.list.chroot
-           echo "qemu-system-arm" >> config/package-lists/my.list.chroot
-           echo "qemu-efi-aarch64" >> config/package-lists/my.list.chroot
-           echo "binfmt-support" >> config/package-lists/my.list.chroot
-           echo "debootstrap" >> config/package-lists/my.list.chroot
-           echo "flex" >> config/package-lists/my.list.chroot
-           echo "libssl-dev" >> config/package-lists/my.list.chroot
-           echo "bc" >> config/package-lists/my.list.chroot
-           echo "rsync" >> config/package-lists/my.list.chroot
-           echo "kmod" >> config/package-lists/my.list.chroot
-           echo "cpio" >> config/package-lists/my.list.chroot
-           echo "xz-utils" >> config/package-lists/my.list.chroot
-           echo "fakeroot" >> config/package-lists/my.list.chroot
-           echo "parted" >> config/package-lists/my.list.chroot
-           echo "udev" >> config/package-lists/my.list.chroot
-           echo "dosfstools" >> config/package-lists/my.list.chroot
-           echo "uuid-runtime" >> config/package-lists/my.list.chroot
-           echo "device-tree-compiler" >> config/package-lists/my.list.chroot
-           echo "python3" >> config/package-lists/my.list.chroot
-           echo "python-is-python3" >> config/package-lists/my.list.chroot
-           echo "fdisk" >> config/package-lists/my.list.chroot
-           echo "debhelper" >> config/package-lists/my.list.chroot
-           echo "python3-pyelftools" >> config/package-lists/my.list.chroot
-           echo "python3-setuptools" >> config/package-lists/my.list.chroot
-           echo "python3-pkg-resources" >> config/package-lists/my.list.chroot
-           echo "swig" >> config/package-lists/my.list.chroot
-           echo "libfdt-dev" >> config/package-lists/my.list.chroot
-           echo "libpython3-dev" >> config/package-lists/my.list.chroot
-           echo "gawk" >> config/package-lists/my.list.chroot
-           echo "git" >> config/package-lists/my.list.chroot
-           echo "build-essential" >> config/package-lists/my.list.chroot
-           echo "ncurses-dev" >> config/package-lists/my.list.chroot
-           echo "libssl-dev" >> config/package-lists/my.list.chroot
-           echo "libelf-dev" >> config/package-lists/my.list.chroot
-           echo "sudo" >> config/package-lists/my.list.chroot
-           echo "libgnutls28-dev" >> config/package-lists/my.list.chroot
-           echo "python3-mako" >> config/package-lists/my.list.chroot
-           echo "libwayland-egl-backend-dev" >> config/package-lists/my.list.chroot
-           echo "libxcb-dri3-dev" >> config/package-lists/my.list.chroot
-           echo "libxcb-dri2-0-dev" >> config/package-lists/my.list.chroot
-           echo "libxcb-glx0-dev" >> config/package-lists/my.list.chroot
-           echo "libx11-xcb-dev" >> config/package-lists/my.list.chroot
-           echo "libxcb-present-dev" >> config/package-lists/my.list.chroot
-           echo "libxcb-sync-dev" >> config/package-lists/my.list.chroot
-           echo "libxxf86vm-dev" >> config/package-lists/my.list.chroot
-           echo "libxshmfence-dev" >> config/package-lists/my.list.chroot
-           echo "libxrandr-dev" >> config/package-lists/my.list.chroot
-           echo "libwayland-dev" >> config/package-lists/my.list.chroot
-           echo "libxdamage-dev" >> config/package-lists/my.list.chroot
-           echo "libxext-dev" >> config/package-lists/my.list.chroot
-           echo "libxfixes-dev" >> config/package-lists/my.list.chroot
-           echo "x11proto-dri2-dev" >> config/package-lists/my.list.chroot
-           echo "x11proto-present-dev" >> config/package-lists/my.list.chroot
-           echo "x11proto-gl-dev" >> config/package-lists/my.list.chroot
-           echo "x11proto-xf86vidmode-dev" >> config/package-lists/my.list.chroot
-           echo "libexpat1-dev" >> config/package-lists/my.list.chroot
-           echo "libudev-dev" >> config/package-lists/my.list.chroot
-           echo "gettext" >> config/package-lists/my.list.chroot
-           echo "mesa-utils" >> config/package-lists/my.list.chroot
-           echo "xutils-dev" >> config/package-lists/my.list.chroot
-           echo "libpthread-stubs0-dev" >> config/package-lists/my.list.chroot
-           echo "ninja-build" >> config/package-lists/my.list.chroot
-           echo "cmake" >> config/package-lists/my.list.chroot
-           echo "valgrind" >> config/package-lists/my.list.chroot
-           echo "python3-pip" >> config/package-lists/my.list.chroot
-           echo "pkg-config" >> config/package-lists/my.list.chroot
-           echo "zlib1g-dev" >> config/package-lists/my.list.chroot
-           echo "wayland-protocols" >> config/package-lists/my.list.chroot
-           echo "libxcb-shm0-dev" >> config/package-lists/my.list.chroot
-           echo "meson" >> config/package-lists/my.list.chroot
-           echo "llvm-20-dev" >> config/package-lists/my.list.chroot
-           echo "libclang-cpp20-dev" >> config/package-lists/my.list.chroot
-           echo "libclc-20-dev" >> config/package-lists/my.list.chroot
-           echo "libllvmspirvlib-20-dev" >> config/package-lists/my.list.chroot
-           echo "spirv-tools" >> config/package-lists/my.list.chroot
-           echo "libopencl-clang-20-dev" >> config/package-lists/my.list.chroot
-           echo "clang-20" >> config/package-lists/my.list.chroot
-           echo "libclang-20-dev" >> config/package-lists/my.list.chroot
-           echo "llvm-spirv-20" >> config/package-lists/my.list.chroot
-           echo "libclang-common-20-dev" >> config/package-lists/my.list.chroot
-           echo "libunwind-20-dev" >> config/package-lists/my.list.chroot
-           echo "lm-sensors" >> config/package-lists/my.list.chroot
-           echo "ibus-mozc" >> config/package-lists/my.list.chroot
-           echo "u-boot-tools" >> config/package-lists/my.list.chroot
-           echo "u-boot-menu" >> config/package-lists/my.list.chroot
-           echo "localechooser-data" >> config/package-lists/my.list.chroot
-           echo "usb-modeswitch" >> config/package-lists/my.list.chroot
-           echo "usb-modeswitch-data" >> config/package-lists/my.list.chroot
-          fi
+              if [ "${PROJECT}" == "ubuntucinnamon" ]; then
+               echo "ubuntucinnamon-desktop" >> config/package-lists/my.list.chroot
+               echo "oem-config-prepare" >> config/package-lists/my.list.chroot
+               echo "oem-config" >> config/package-lists/my.list.chroot
+               echo "oem-config-gtk" >> config/package-lists/my.list.chroot
+               echo "ubiquity-frontend-gtk" >> config/package-lists/my.list.chroot
+               echo "ubiquity-slideshow-ubuntu" >> config/package-lists/my.list.chroot
+               echo "yaru-theme-unity" >> config/package-lists/my.list.chroot
+               echo "linux-firmware" >> config/package-lists/my.list.chroot
+               echo "cloud-initramfs-growroot" >> config/package-lists/my.list.chroot
+               echo "aptdaemon" >> config/package-lists/my.list.chroot
+               echo "grub-efi-arm64" >> config/package-lists/my.list.chroot
+               echo "initramfs-tools" >> config/package-lists/my.list.chroot
+               echo "software-properties-common" >> config/package-lists/my.list.chroot
+               echo "apt-utils" >> config/package-lists/my.list.chroot
+               echo "build-essential" >> config/package-lists/my.list.chroot
+               echo "gcc-aarch64-linux-gnu" >> config/package-lists/my.list.chroot
+               echo "bison" >> config/package-lists/my.list.chroot
+               echo "qemu-user-static" >> config/package-lists/my.list.chroot
+               echo "qemu-system-arm" >> config/package-lists/my.list.chroot
+               echo "qemu-efi-aarch64" >> config/package-lists/my.list.chroot
+               echo "binfmt-support" >> config/package-lists/my.list.chroot
+               echo "debootstrap" >> config/package-lists/my.list.chroot
+               echo "flex" >> config/package-lists/my.list.chroot
+               echo "libssl-dev" >> config/package-lists/my.list.chroot
+               echo "bc" >> config/package-lists/my.list.chroot
+               echo "rsync" >> config/package-lists/my.list.chroot
+               echo "kmod" >> config/package-lists/my.list.chroot
+               echo "cpio" >> config/package-lists/my.list.chroot
+               echo "xz-utils" >> config/package-lists/my.list.chroot
+               echo "fakeroot" >> config/package-lists/my.list.chroot
+               echo "parted" >> config/package-lists/my.list.chroot
+               echo "udev" >> config/package-lists/my.list.chroot
+               echo "dosfstools" >> config/package-lists/my.list.chroot
+               echo "uuid-runtime" >> config/package-lists/my.list.chroot
+               echo "device-tree-compiler" >> config/package-lists/my.list.chroot
+               echo "python3" >> config/package-lists/my.list.chroot
+               echo "python-is-python3" >> config/package-lists/my.list.chroot
+               echo "fdisk" >> config/package-lists/my.list.chroot
+               echo "debhelper" >> config/package-lists/my.list.chroot
+               echo "python3-pyelftools" >> config/package-lists/my.list.chroot
+               echo "python3-setuptools" >> config/package-lists/my.list.chroot
+               echo "python3-pkg-resources" >> config/package-lists/my.list.chroot
+               echo "swig" >> config/package-lists/my.list.chroot
+               echo "libfdt-dev" >> config/package-lists/my.list.chroot
+               echo "libpython3-dev" >> config/package-lists/my.list.chroot
+               echo "gawk" >> config/package-lists/my.list.chroot
+               echo "git" >> config/package-lists/my.list.chroot
+               echo "build-essential" >> config/package-lists/my.list.chroot
+               echo "ncurses-dev" >> config/package-lists/my.list.chroot
+               echo "libssl-dev" >> config/package-lists/my.list.chroot
+               echo "libelf-dev" >> config/package-lists/my.list.chroot
+               echo "sudo" >> config/package-lists/my.list.chroot
+               echo "libgnutls28-dev" >> config/package-lists/my.list.chroot
+               echo "python3-mako" >> config/package-lists/my.list.chroot
+               echo "libwayland-egl-backend-dev" >> config/package-lists/my.list.chroot
+               echo "libxcb-dri3-dev" >> config/package-lists/my.list.chroot
+               echo "libxcb-dri2-0-dev" >> config/package-lists/my.list.chroot
+               echo "libxcb-glx0-dev" >> config/package-lists/my.list.chroot
+               echo "libx11-xcb-dev" >> config/package-lists/my.list.chroot
+               echo "libxcb-present-dev" >> config/package-lists/my.list.chroot
+               echo "libxcb-sync-dev" >> config/package-lists/my.list.chroot
+               echo "libxxf86vm-dev" >> config/package-lists/my.list.chroot
+               echo "libxshmfence-dev" >> config/package-lists/my.list.chroot
+               echo "libxrandr-dev" >> config/package-lists/my.list.chroot
+               echo "libwayland-dev" >> config/package-lists/my.list.chroot
+               echo "libxdamage-dev" >> config/package-lists/my.list.chroot
+               echo "libxext-dev" >> config/package-lists/my.list.chroot
+               echo "libxfixes-dev" >> config/package-lists/my.list.chroot
+               echo "x11proto-dri2-dev" >> config/package-lists/my.list.chroot
+               echo "x11proto-present-dev" >> config/package-lists/my.list.chroot
+               echo "x11proto-gl-dev" >> config/package-lists/my.list.chroot
+               echo "x11proto-xf86vidmode-dev" >> config/package-lists/my.list.chroot
+               echo "libexpat1-dev" >> config/package-lists/my.list.chroot
+               echo "libudev-dev" >> config/package-lists/my.list.chroot
+               echo "gettext" >> config/package-lists/my.list.chroot
+               echo "mesa-utils" >> config/package-lists/my.list.chroot
+               echo "xutils-dev" >> config/package-lists/my.list.chroot
+               echo "libpthread-stubs0-dev" >> config/package-lists/my.list.chroot
+               echo "ninja-build" >> config/package-lists/my.list.chroot
+               echo "cmake" >> config/package-lists/my.list.chroot
+               echo "valgrind" >> config/package-lists/my.list.chroot
+               echo "python3-pip" >> config/package-lists/my.list.chroot
+               echo "pkg-config" >> config/package-lists/my.list.chroot
+               echo "zlib1g-dev" >> config/package-lists/my.list.chroot
+               echo "wayland-protocols" >> config/package-lists/my.list.chroot
+               echo "libxcb-shm0-dev" >> config/package-lists/my.list.chroot
+               echo "meson" >> config/package-lists/my.list.chroot
+               echo "llvm-20-dev" >> config/package-lists/my.list.chroot
+               echo "libclang-cpp20-dev" >> config/package-lists/my.list.chroot
+               echo "libclc-20-dev" >> config/package-lists/my.list.chroot
+               echo "libllvmspirvlib-20-dev" >> config/package-lists/my.list.chroot
+               echo "spirv-tools" >> config/package-lists/my.list.chroot
+               echo "libopencl-clang-20-dev" >> config/package-lists/my.list.chroot
+               echo "clang-20" >> config/package-lists/my.list.chroot
+               echo "libclang-20-dev" >> config/package-lists/my.list.chroot
+               echo "llvm-spirv-20" >> config/package-lists/my.list.chroot
+               echo "libclang-common-20-dev" >> config/package-lists/my.list.chroot
+               echo "libunwind-20-dev" >> config/package-lists/my.list.chroot
+               echo "lm-sensors" >> config/package-lists/my.list.chroot
+               echo "ibus-mozc" >> config/package-lists/my.list.chroot
+               echo "u-boot-tools" >> config/package-lists/my.list.chroot
+               echo "u-boot-menu" >> config/package-lists/my.list.chroot
+               echo "localechooser-data" >> config/package-lists/my.list.chroot
+               echo "usb-modeswitch" >> config/package-lists/my.list.chroot
+               echo "usb-modeswitch-data" >> config/package-lists/my.list.chroot
+              fi
 
 # Build the rootfs
-      - name: lb build
-        run: |
-          sudo lb build
-          rm -rf auto binary binary.log cache chroot.bootstrap chroot.headers chroot.packages.minimal chroot.packages.minimal.standard chroot.packages.minimal.standard.live config livecd.ubuntucinnamon.initrd livecd.ubuntucinnamon.initrd-generic livecd.ubuntucinnamon.install-sources.yaml livecd.ubuntucinnamon.kernel livecd.ubuntucinnamon.kernel-generic livecd.ubuntucinnamon.manifest livecd.ubuntucinnamon.minimal.manifest livecd.ubuntucinnamon.minimal.manifest.full livecd.ubuntucinnamon.minimal.size livecd.ubuntucinnamon.minimal.squashfs livecd.ubuntucinnamon.minimal.standard.live.manifest livecd.ubuntucinnamon.minimal.standard.live.manifest.full livecd.ubuntucinnamon.minimal.standard.live.size livecd.ubuntucinnamon.minimal.standard.live.squashfs livecd.ubuntucinnamon.minimal.standard.manifest livecd.ubuntucinnamon.minimal.standard.manifest.full livecd.ubuntucinnamon.minimal.standard.size livecd.ubuntucinnamon.minimal.standard.squashfs livecd.ubuntucinnamon.size local overlay.minimal.standard overlay.minimal.standard-2 overlay.minimal.standard.live overlay.minimal.standard.live-2 sources.list.sha ubuntu.sources.sha ubuntucinnamon work
-          chroot_dir="overlay.minimal"
-          du -sh $chroot_dir
+          - name: lb build
+            run: |
+              sudo lb build
+              rm -rf auto binary binary.log cache chroot.bootstrap chroot.headers chroot.packages.minimal chroot.packages.minimal.standard chroot.packages.minimal.standard.live config livecd.ubuntucinnamon.initrd livecd.ubuntucinnamon.initrd-generic livecd.ubuntucinnamon.install-sources.yaml livecd.ubuntucinnamon.kernel livecd.ubuntucinnamon.kernel-generic livecd.ubuntucinnamon.manifest livecd.ubuntucinnamon.minimal.manifest livecd.ubuntucinnamon.minimal.manifest.full livecd.ubuntucinnamon.minimal.size livecd.ubuntucinnamon.minimal.squashfs livecd.ubuntucinnamon.minimal.standard.live.manifest livecd.ubuntucinnamon.minimal.standard.live.manifest.full livecd.ubuntucinnamon.minimal.standard.live.size livecd.ubuntucinnamon.minimal.standard.live.squashfs livecd.ubuntucinnamon.minimal.standard.manifest livecd.ubuntucinnamon.minimal.standard.manifest.full livecd.ubuntucinnamon.minimal.standard.size livecd.ubuntucinnamon.minimal.standard.squashfs livecd.ubuntucinnamon.size local overlay.minimal.standard overlay.minimal.standard-2 overlay.minimal.standard.live overlay.minimal.standard.live-2 sources.list.sha ubuntu.sources.sha ubuntucinnamon work
+              chroot_dir="overlay.minimal"
+              du -sh $chroot_dir
 
-      - name: Upload a kernel
-        uses: actions/upload-artifact@v4.5.0
-        with:
+          - name: Upload a kernel
+            uses: actions/upload-artifact@v4.5.0
+            with:
         # A file, directory or wildcard pattern that describes what to upload
-          name: ubuntu
-          path: image/*.img
-          compression-level: 0
+              name: ubuntu
+              path: image/*.img
+              compression-level: 0
           # The desired behavior if no files are found using the provided path.
-          if-no-files-found: error
+              if-no-files-found: error
