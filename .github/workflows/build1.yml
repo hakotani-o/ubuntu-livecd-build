@@ -2,15 +2,17 @@ name: livecd-build
 on: workflow_dispatch
 #workflow_dispatch
 #[push]
-jobs:		
-    defaults:
-        shell: bash
-        command:
-        name: Use Linux commands
+jobs:
+    example:
         runs-on: ubuntu-24.04-arm
-        steps:
+            defaults:
+            run:
+            shell: bash
 
 
+command:
+    name: Use Linux commands
+    steps:
     
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
           - name: Checkout
