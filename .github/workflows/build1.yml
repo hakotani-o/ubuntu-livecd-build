@@ -61,16 +61,6 @@ jobs:
               cd ../..
               sudo umount arm64
 
-          - name: Get more disk space
-            uses: jlumbroso/free-disk-space@main
-            with:
-              tool-cache: false
-              android: true
-              dotnet: true
-              haskell: true
-              large-packages: true
-              swap-storage: true
-
           - name: livecd build
             run: |
               cd build
