@@ -61,24 +61,24 @@ jobs:
               cd ../..
               sudo umount arm64
 
+            env:
+                ARCH: arm64
+                IMAGEFORMAT: none
+                IMAGE_TARGETS: none
+                ID_LIKE: arm64
+                SUIT: plucky
+                SUBPROJECT: desktop-preinstalled
+                PROJECT: ubuntucinnamon
           - name: livecd build
             run: |
-              cd build
-              chroot_dir="overlay.minimal"
-              # Query the system to locate livecd-rootfs auto script installation path
-              cp -a /usr/share/livecd-rootfs/live-build/auto .
-              cp -a /usr/share/livecd-rootfs/live-build/ubuntucinnamon .
-              export SUBPROJECT=desktop-preinstalled
-              export PROJECT=ubuntucinnamon
-              name="desktop"
-              export SUITE=plucky
-              Uri="https://mirror.hashy0917.net/ubuntu-ports/"
-              export ARCH=arm64
-              export IMAGEFORMAT=none
-              export IMAGE_TARGETS=none
-              export EXTRA_PPAS=""
-              export ID_LIKE=arm64
-              lb config '--architectures arm64 --bootstrap-qemu-arch arm64 --bootstrap-qemu-static /usr/bin/qemu-aarch64-static --archive-areas "main restricted universe multiverse" --parent-archive-areas "main restricted universe multiverse" --mirror-bootstrap "$Uri" --parent-mirror-bootstrap "$Uri" --mirror-chroot-security "$Uri" --parent-mirror-chroot-security "$Uri" --mirror-binary-security "$Uri" --parent-mirror-binary-security "$Uri" --mirror-binary "$Uri" --parent-mirror-binary "$Uri" --keyring-packages ubuntu-keyring'
+             cd build
+             chroot_dir="overlay.minimal"
+             # Query the system to locate livecd-rootfs auto script installation path
+             cp -a /usr/share/livecd-rootfs/live-build/auto .
+             cp -a /usr/share/livecd-rootfs/live-build/ubuntucinnamon .
+             name="desktop" 
+             Uri="https://mirror.hashy0917.net/ubuntu-ports/"
+             lb config --architectures arm64 --bootstrap-qemu-arch arm64 --bootstrap-qemu-static /usr/bin/qemu-aarch64-static --archive-areas "main restricted universe multiverse" --parent-archive-areas "main restricted universe multiverse" --mirror-bootstrap "$Uri" --parent-mirror-bootstrap "$Uri" --mirror-chroot-security "$Uri" --parent-mirror-chroot-security "$Uri" --mirror-binary-security "$Uri" --parent-mirror-binary-security "$Uri" --mirror-binary "$Uri" --parent-mirror-binary "$Uri" --keyring-packages ubuntu-keyring
 
                 ls && pwd
                 ls  config/package-lists/
