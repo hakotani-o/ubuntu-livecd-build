@@ -3,7 +3,7 @@ on: workflow_dispatch
 #workflow_dispatch
 #[push]
 jobs:
-    livecd-build:
+    ubuntu:
         runs-on: ubuntu-24.04-arm
         defaults:
          run:
